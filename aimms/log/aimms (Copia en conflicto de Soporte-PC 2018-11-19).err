@@ -1,0 +1,12 @@
+Warning at line 3 in user-defined function section "procSolveNumTrabajadores".
+The parameter "pReqTrabajadores" is not initialized (default values are used).
+Warning at line 3 in user-defined function section "procSolveNuevoConvenio".
+The parameter "pDispTrabajadores" is not initialized (default values are used).
+Warning at line 3 in user-defined function section "procSolveNuevoConvenio".
+The parameter "pNumTrabNuevoContrao" is not initialized (default values are used).
+Warning at line 3 in user-defined function section "procSolveNuevoConvenio".
+The parameter "pCosteHoraExtra" is not initialized (default values are used).
+Warning at line 3 in user-defined function section "procSolveNuevoConvenio".
+The parameter "pCosteDiaContNuevo" is not initialized (default values are used).
+Warning at line 3 in user-defined function section "procSolveNuevoConvenio".
+The parameter "pCosteDiaContAnt" is not initialized (default values are used).

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<TemplateManager>
+	<Page Name="pagGUI" PageGUID="68394D72-49F8-409C-B13A-DE38320046ED" />
+	<Page Name="All Data Pages" PageGUID="07BF88E4-1E54-4494-94F5-4669F917F759" />
+	<Page Name="[Data Page] p01TareaSucedeATarea" PageGUID="BE1DD950-9E61-469B-A6A9-2EF57C44CB15" />
+	<Page Name="[Data Page] p01TareaPrecedeATarea" PageGUID="1063DD77-501B-4F07-8D74-A2CD217FE620" />
+</TemplateManager>

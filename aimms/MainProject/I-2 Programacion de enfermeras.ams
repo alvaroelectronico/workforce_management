@@ -1,0 +1,276 @@
+## ams_version=1.0
+
+Model ProgramacionEnfermeras {
+    Procedure procSolveNumTrabajadores {
+        Body: {
+            empty AllVariables;
+            showprogresswindow;
+            solve mpMinNumTrabajadores;
+        }
+    }
+    Procedure procSolveNumHorasExtra {
+        Body: {
+            empty AllVariables;
+            showprogresswindow;
+            solve mpMinNumHorasExtra;
+        }
+    }
+    Procedure procSolveNuevoConvenio {
+        Body: {
+            empty AllVariables;
+            showprogresswindow;
+            solve mpMinCosteTotalNuevoContrato;
+        }
+    }
+    DeclarationSection decComun {
+        Set sFranjas {
+            Index: iFranja;
+        }
+        Parameter pReqTrabajadores {
+            IndexDomain: iFranja;
+        }
+        Parameter pDuracionFranja {
+            IndexDomain: iFranja;
+            Definition: 2;
+        }
+        Variable vNoTrabajadoresEntran {
+            IndexDomain: iFranja;
+            Range: integer;
+            Comment: {
+                "Enfermeras que comienzan a trabajar al prinipio de la franja
+                iFranja"
+            }
+        }
+        Constraint cReqTrabajadores;
+    }
+    DeclarationSection decNumTrabajadores {
+        Variable vNumeroTotalTrabajadores {
+            Definition: sum(iFranja,vNoTrabajadoresEntran(iFranja));
+        }
+        Constraint cReqTrabajadoresConHE {
+            IndexDomain: iFranja;
+            Definition: vNoTrabajadoresEntran(iFranja)+vNoTrabajadoresEntran(iFranja--1)+vNoTrabajadoresEntran(iFranja--3)+vNoTrabajadoresEntran(iFranja--4)>=pReqTrabajadores(iFranja);
+        }
+        Set sRestriccionesNumTrabajadores {
+            SubsetOf: AllConstraints;
+            Definition: allconstraints*(decNumTrabajadores+decComun);
+        }
+        Set sVariablesNumTrabajadores {
+            SubsetOf: AllVariables;
+            Definition: allvariables*(decNumTrabajadores+decComun);
+        }
+        MathematicalProgram mpMinNumTrabajadores {
+            Objective: vNumeroTotalTrabajadores;
+            Direction: minimize;
+            Constraints: sRestriccionesNumTrabajadores;
+            Variables: AllVariables;
+        }
+    }
+    DeclarationSection decHorasExtra {
+        Parameter pDispTrabajadores;
+        Variable vNumTotalHE {
+            Definition: sum(iFranja,vNumTrabHacenHE(iFranja));
+        }
+        Constraint cDispTrabajadores {
+            Text: "No puede haber más enfermeras en horas extra que en horario normal";
+            Definition: sum(iFranja,vNoTrabajadoresEntran(iFranja))<=pDispTrabajadores;
+        }
+        Variable vNumTrabHacenHE {
+            IndexDomain: (iFranja);
+            Range: integer;
+        }
+        Constraint cMaxHorasExtra {
+            IndexDomain: iFranja;
+            Definition: vNumTrabHacenHE(iFranja)<=vNoTrabajadoresEntran(iFranja);
+        }
+        Constraint cAtenderReqTrabajdoresConExtra {
+            IndexDomain: iFranja;
+            Definition: {
+                vNoTrabajadoresEntran(iFranja)
+                +vNoTrabajadoresEntran(iFranja--1)
+                +vNoTrabajadoresEntran(iFranja--3)
+                +vNoTrabajadoresEntran(iFranja--4)
+                +vNumTrabHacenHE(iFranja--5)
+                >=
+                pReqTrabajadores(iFranja)
+            }
+        }
+        Set sRestriccionesHorasExtra {
+            SubsetOf: AllConstraints;
+            Definition: AllConstraints*(decComun+decHorasExtra);
+        }
+        Set sVariablesHorasExtra {
+            SubsetOf: AllVariables;
+            Definition: allvariables*(decComun+decHorasExtra);
+        }
+        MathematicalProgram mpMinNumHorasExtra {
+            Objective: vNumTotalHE;
+            Direction: minimize;
+            Constraints: sRestriccionesHorasExtra;
+            Variables: AllVariables;
+        }
+    }
+    DeclarationSection decNuevoConvenio {
+        Parameter pDispTrabajadoresNuevoConvenio;
+        Parameter pCosteHoraExtra {
+            IndexDomain: (iFranja);
+        }
+        Parameter pCosteDiaContNuevo;
+        Parameter pCosteDiaContAnt;
+        Variable vCosteHorasExtra {
+            Text: "Coste horas extra";
+            Range: nonnegative;
+            Definition: {
+                sum(iFranja,vNumTrabHacenHE(iFranja)
+                *pCosteHoraExtra(iFranja++5)*pDuracionFranja(iFranja))
+            }
+        }
+        Variable vCostePersonal {
+            Text: "Coste personal";
+            Range: nonnegative;
+            Definition: {
+                vCostePersonalAnt
+                +
+                vCostePersonalNuevo
+            }
+        }
+        Variable vCostePersonalAnt {
+            Range: free;
+            Definition: sum(iFranja, vNoTrabajadoresEntran(iFranja))*pCosteDiaContAnt;
+        }
+        Variable vCostePersonalNuevo {
+            Range: free;
+            Definition: sum(iFranja, vNoTrabNuevComienzan(iFranja))*pCosteDiaContNuevo;
+        }
+        Variable vNoTrabContAntiguo {
+            Text: "Nº trab. cont. antiguo";
+            Range: integer;
+            Definition: {
+                sum(iFranja,
+                vNoTrabajadoresEntran(iFranja))
+            }
+        }
+        Variable vNoTrabContNuevo {
+            Text: "Nº trab. cont. nuevo";
+            Range: integer;
+            Definition: {
+                sum(iFranja,
+                vNoTrabNuevComienzan(iFranja))
+            }
+        }
+        Variable vNoTrabNuevComienzan {
+            IndexDomain: iFranja;
+            Range: integer;
+            Comment: {
+                "Enfermeras que comienzan a trabajar al prinipio de la franja
+                iFranja"
+            }
+        }
+        Variable vCosteTotalNuevoConvenio {
+            Text: "Coste total nuevo convenio";
+            Range: free;
+            Definition: {
+                vCosteHorasExtra
+                +
+                vCostePersonal
+            }
+        }
+        Constraint cAtenderReqTrabajadoresNuevoConvenio {
+            IndexDomain: iFranja;
+            Text: "Atender demanda";
+            Definition: {
+                vNoTrabajadoresEntran(iFranja)
+                +vNoTrabajadoresEntran(iFranja--1)
+                +vNoTrabajadoresEntran(iFranja--3)
+                +vNoTrabajadoresEntran(iFranja--4)
+                +vNumTrabHacenHE(iFranja--5)
+                +
+                vNoTrabNuevComienzan(iFranja)
+                +vNoTrabNuevComienzan(iFranja--1)
+                +vNoTrabNuevComienzan(iFranja--2)
+                >=
+                pReqTrabajadores(iFranja)
+            }
+        }
+        Constraint cLimiteSuperiorEnfHorasExtraNuevoContrato {
+            IndexDomain: iFranja;
+            Text: "Consistencia horas extra";
+            Definition: {
+                vNumTrabHacenHE(iFranja)
+                <=
+                vNoTrabajadoresEntran(iFranja)
+            }
+        }
+        Constraint cNoTrabajadoresConNuevoConvenio {
+            Text: "Nº total trabajadores";
+            Definition: {
+                vNoTrabContAntiguo
+                +
+                vNoTrabContNuevo
+                <=
+                pDispTrabajadoresNuevoConvenio
+            }
+        }
+        Set sRestriccionesNuevoContratoEleg {
+            SubsetOf: AllConstraints;
+            Definition: AllConstraints*(decComun+decNuevoConvenio);
+        }
+        Set sVariablesNuevoContrato {
+            SubsetOf: AllVariables;
+            Definition: allvariables*(decComun+decNuevoConvenio);
+        }
+        Set sRestriccionesNuevoContrato {
+            SubsetOf: sRestriccionesNuevoContratoEleg;
+            InitialData: sRestriccionesNuevoContratoEleg;
+        }
+        MathematicalProgram mpMinCosteTotalNuevoContrato {
+            Objective: vCosteTotalNuevoConvenio;
+            Direction: minimize;
+            Constraints: sRestriccionesNuevoContrato;
+            Variables: AllVariables;
+        }
+        Parameter pNumTrabNuevoContrao;
+        Constraint cFijarNumTrabNuevoContrato {
+            Text: "Fijar nº nuevos contratos";
+            Definition: vNoTrabContNuevo=pNumTrabNuevoContrao;
+        }
+    }
+    Section secOutput {
+        Procedure procActualizaRestrNuevoContrato {
+            Body: {
+                sRestriccionesNuevoContrato:=sRestriccionesNuevoContratoEleg;
+                if not p01FijarNumTrabNuevoContrato then
+                	sRestriccionesNuevoContrato-='cFijarNumTrabNuevoContrato';
+                endif;
+            }
+        }
+        DeclarationSection decGUI {
+            Parameter p01FijarNumTrabNuevoContrato {
+                Range: binary;
+            }
+        }
+        DeclarationSection decOutput {
+            Parameter pNoTrabEntranAntiguo {
+                IndexDomain: iFranja;
+            }
+            Parameter Copy_pNoTrabEntranAntiguo {
+                IndexDomain: iFranja;
+            }
+        }
+    }
+    Procedure MainInitialization;
+    Procedure MainExecution {
+        Body: {
+            solve mpMinNumHorasExtra;
+        }
+    }
+    Procedure MainTermination {
+        Body: {
+            if ( CaseSaveAll( confirm:2 ) = 1 ) then
+                return 1;
+            else
+                return 0;
+            endif ;
+        }
+    }
+}

@@ -1,0 +1,4 @@
+Warning at line 13.
+The tuple (UTC) is assigned to LocaleTimeZoneName with the values GMT Standard Time and Coordinated Universal Time.
+Warning at line 13.
+The tuple (UTC) is assigned to LocaleTimeZoneNameDST with the values GMT Daylight Time and Coordinated Universal Time.
